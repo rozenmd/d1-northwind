@@ -1,2 +1,7 @@
 compatibility_date = "2022-04-05"
 compatibility_flags = ["streams_enable_constructors"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "northwind"
+database_id = "68e0b9c4-e435-4c6f-a0ce-4ef5bf23d3a4"

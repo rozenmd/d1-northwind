@@ -4,15 +4,22 @@ import { useLoaderData } from "@remix-run/react";
 import { json } from "@remix-run/cloudflare";
 import { Paginate } from "~/components/Paginate";
 import { useStatsDispatch } from "~/components/StatsContext";
-
+import { client } from "~/db/client.server";
+import { customers } from "~/db/schema";
 import type { LoaderFunction } from "@remix-run/cloudflare";
 
-export const loader: LoaderFunction = async ({ request }) => {
+export const loader: LoaderFunction = async ({ request, context }) => {
   const url = new URL(request.url);
-
+  const itemsPerPage = 20;
   const page = Number(url.searchParams.get("page")) || 1;
   const count = url.searchParams.get("count");
   const search = url.searchParams.get("search");
+  const allCustomers = await client(context.DB)
+    .select()
+    .from(customers)
+    .limit(itemsPerPage)
+    .offset((page - 1) * itemsPerPage)
+    .get();
 
   const rand = Math.floor(Math.random() * 1000001);
   const path = `https://v2-worker.rozenmd.workers.dev/api/customers?page=${page}${
@@ -22,7 +29,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   const res = await fetch(path);
   const result = (await res.json()) as any;
 
-  return json({ ...result });
+  return json({ ...result, allCustomers });
 };
 type LoaderType = Awaited<ReturnType<typeof loader>>;
 interface Customer {
@@ -39,6 +46,7 @@ const Customers = () => {
   const data = useLoaderData<LoaderType>();
   const navigate = useNavigate();
   const { customers, page, pages } = data;
+  console.log("data", data);
   const dispatch = useStatsDispatch();
 
   useEffect(() => {
