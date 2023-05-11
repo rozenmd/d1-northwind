@@ -14,13 +14,19 @@ export const loader: LoaderFunction = async ({ request, context }) => {
   const page = Number(url.searchParams.get("page")) || 1;
   const count = url.searchParams.get("count");
   const search = url.searchParams.get("search");
-  const allCustomers = await client(context.DB)
-    .select()
-    .from(customers)
-    .limit(itemsPerPage)
-    .offset((page - 1) * itemsPerPage)
-    .get();
-
+  let allCustomers: any[] = [];
+  try {
+    allCustomers = await client(context.DB)
+      .select()
+      .from(customers)
+      .limit(itemsPerPage)
+      .offset((page - 1) * itemsPerPage)
+      .all();
+    console.log("allCustomers: ", allCustomers);
+  } catch (e) {
+    console.log("e: ", e);
+    console.log("e.cause: ", (e as any).cause);
+  }
   const rand = Math.floor(Math.random() * 1000001);
   const path = `https://v2-worker.rozenmd.workers.dev/api/customers?page=${page}${
     Number(count) > 0 ? `` : `&count=true`
